@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
+import Error from './Error';
 
-const Form = ({ setPacientes, pacientes }) => {
+const Form = ({ setPacientes, pacientes, paciente, setPaciente }) => {
   const [name, setName] = useState('');
   const [propietario, setPropietario] = useState('');
   const [email, setEmail] = useState('');
@@ -8,6 +9,23 @@ const Form = ({ setPacientes, pacientes }) => {
   const [sintomas, setsintomas] = useState('');
 
   const [error, seterror] = useState(false);
+
+  useEffect(() => {
+    if (Object.keys(paciente).length > 0) {
+      setName(paciente.name);
+      setPropietario(paciente.propietario);
+      setEmail(paciente.email);
+      setAlta(paciente.alta);
+      setsintomas(paciente.sintomas);
+    }
+  }, [paciente]);
+
+  const generarId = () => {
+    const random = Math.random().toString(36).substring(2);
+    const fecht = Date.now().toString();
+
+    return random + fecht;
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -27,7 +45,20 @@ const Form = ({ setPacientes, pacientes }) => {
       sintomas,
     };
 
-    setPacientes([...pacientes, pacienteObj]);
+    if (paciente.id) {
+      //Edsitando registro
+      pacienteObj.id = paciente.id;
+      const pacientesActualizados = pacientes.map((pacienteState) =>
+        pacienteState.id === paciente.id ? pacienteObj : pacienteState
+      );
+
+      setPacientes(pacientesActualizados);
+      setPaciente({});
+    } else {
+      //nuevoregistro
+      pacienteObj.id = generarId();
+      setPacientes([...pacientes, pacienteObj]);
+    }
 
     //Reiniciar el Formulario
     setName('');
@@ -51,12 +82,7 @@ const Form = ({ setPacientes, pacientes }) => {
         className="bg-white shadow-lg rounded-lg py-10 px-5"
         onSubmit={handleSubmit}
       >
-        {error && (
-          <div className="bg-red-600 text-white text-center p-3 uppercase text-sm font-bold  mb-5 rounded-md">
-            {' '}
-            Todos los campos son obligatorios
-          </div>
-        )}
+        {error && <Error mensaje={'Todos los campos son obligatorios'} />}
 
         <div className="mb-5">
           <label
@@ -143,7 +169,7 @@ const Form = ({ setPacientes, pacientes }) => {
         <input
           type="submit"
           className="bg-indigo-600 w-full p-3 text-white uppercase font-bold  cursor-pointer hover:bg-indigo-700 transition-all"
-          value={'Agregar paciente'}
+          value={paciente.id ? 'Editar Paciente' : 'Agregar Paciente'}
         />
       </form>
     </div>
